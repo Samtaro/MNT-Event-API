@@ -42,43 +42,34 @@ http://www.meetup.com/Growth-Hacking-Montreal/
 http://www.meetup.com/Hardware-Guild/
 http://www.meetup.com/Oracle-Developers-Montreal`;
 
-var test =
-    `
-https://www.meetup.com/mtlecommerce/
-http://www.meetup.com/Docker-Montreal/
-http://www.meetup.com/Sidechain-Ethereum-Blockchain/
-http://www.meetup.com/Montreal-Bleu-Blanc-Tech/
-http://www.meetup.com/Bitcoin-Embassy/ 
-http://www.meetup.com/mtlnewtech/
-http://www.meetup.com/msdevmtl/
-http://www.meetup.com/MTL-Machine-Learning/
-http://www.meetup.com/LogicielLibre/
-http://www.meetup.com/Mentors-Montreal-Meetup/
-http://www.meetup.com/Haskellers-Montreal-Meetup/`
-
-
-//Changed this.
-var arrOfWebsites = test.split("\nhttp://www.meetup.com/");
+//Making the list of sites array method friendly. So basically making
+//it into an array.
+var arrOfWebsites = listOfWebsites.split("\nhttp://www.meetup.com/");
 var arrOfUrlNames = arrOfWebsites.map(function(link) {
     return link.replace("/", "");
 });
 arrOfUrlNames.splice(0, 1)
 
-
+//URL Constructor. Yes this is totally necessary.
 var front = "https://api.meetup.com/2/events?key=";
 var middle = "&group_urlname="
 var end = "&sign=true"
 var key = '1c5646f126f7c53745d76345155a39'
 
-
+//Cycles through each element in the array and gets some data.
 arrOfUrlNames.forEach(function(website) {
     request.get(front + key + middle + website + end, function(err, data) {
         if (err) {
             console.log(err)
         }
         else {
+            
             var nicedata = JSON.parse(data.body)
             if (nicedata.results[0]) {
+                //REDUCE POWER. Returns an object. Puts all the events from one
+                //group into an object. The key is the date. This is so that it will be 
+                //easier in the future to group events together by date across all groups.
+                //Future proof power.
                 var placeholdername = nicedata.results.reduce(function(schedule, event, idx) {
                         var moments = moment(event.time);
                         schedule[moments.format('dddd, MMMM Do YYYY')] = {
@@ -88,6 +79,7 @@ arrOfUrlNames.forEach(function(website) {
                             description: event['description'],
                             url: event.event_url
                         }
+                        //This was necessary because some events didn't have a venue.
                         if (event.venue) {
                             schedule[moments.format('dddd, MMMM Do YYYY')].location = event.venue.address_1
                         }
